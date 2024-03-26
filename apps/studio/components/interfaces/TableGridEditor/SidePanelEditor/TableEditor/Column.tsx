@@ -1,13 +1,13 @@
 import { noop } from 'lodash'
 import { Checkbox, IconMenu, IconSettings, IconX, Input, Popover } from 'ui'
 
-import { EnumeratedType } from 'data/enumerated-types/enumerated-types-query'
+import type { EnumeratedType } from 'data/enumerated-types/enumerated-types-query'
 import { EMPTY_ARR, EMPTY_OBJ } from 'lib/void'
 import { typeExpressionSuggestions } from '../ColumnEditor/ColumnEditor.constants'
-import { Suggestion } from '../ColumnEditor/ColumnEditor.types'
+import type { Suggestion } from '../ColumnEditor/ColumnEditor.types'
 import ColumnType from '../ColumnEditor/ColumnType'
 import InputWithSuggestions from '../ColumnEditor/InputWithSuggestions'
-import { ColumnField } from '../SidePanelEditor.types'
+import type { ColumnField } from '../SidePanelEditor.types'
 
 /**
  * [Joshen] For context:
@@ -157,19 +157,14 @@ const Column = ({
                       <Popover.Separator />
                     </>
                   )}
-
-                  {column.isNewColumn && (
-                    <>
-                      <Checkbox
-                        label="Is Unique"
-                        description="Enforce if values in the column should be unique across rows"
-                        checked={column.isUnique}
-                        className="p-4"
-                        onChange={() => onUpdateColumn({ isUnique: !column.isUnique })}
-                      />
-                      <Popover.Separator />
-                    </>
-                  )}
+                  <Checkbox
+                    label="Is Unique"
+                    description="Enforce if values in the column should be unique across rows"
+                    checked={column.isUnique}
+                    className="p-4"
+                    onChange={() => onUpdateColumn({ isUnique: !column.isUnique })}
+                  />
+                  <Popover.Separator />
                   {column.format.includes('int') && (
                     <>
                       <Checkbox

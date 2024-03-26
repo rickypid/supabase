@@ -1,6 +1,7 @@
 import { PermissionAction } from '@supabase/shared-types/out/constants'
 import { useParams } from 'common'
 import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
 import {
   AlertDescription_Shadcn_,
   AlertTitle_Shadcn_,
@@ -28,7 +29,7 @@ import UpgradeToPro from 'components/ui/UpgradeToPro'
 import { useAuthConfigQuery } from 'data/auth/auth-config-query'
 import { useAuthConfigUpdateMutation } from 'data/auth/auth-config-update-mutation'
 import { useOrgSubscriptionQuery } from 'data/subscriptions/org-subscription-query'
-import { useCheckPermissions, useSelectedOrganization, useStore } from 'hooks'
+import { useCheckPermissions, useSelectedOrganization } from 'hooks'
 import { IS_PLATFORM } from 'lib/constants'
 import FormField from '../AuthProvidersForm/FormField'
 
@@ -45,13 +46,14 @@ const schema = object({
   SECURITY_CAPTCHA_ENABLED: boolean().required(),
   SECURITY_CAPTCHA_SECRET: string().when('SECURITY_CAPTCHA_ENABLED', {
     is: true,
-    then: string().required('Must have a Captcha secret'),
+    then: (schema) => schema.required('Must have a Captcha secret'),
   }),
   SECURITY_CAPTCHA_PROVIDER: string().when('SECURITY_CAPTCHA_ENABLED', {
     is: true,
-    then: string()
-      .oneOf(['hcaptcha', 'turnstile'])
-      .required('Captcha provider must be either hcaptcha or turnstile'),
+    then: (schema) =>
+      schema
+        .oneOf(['hcaptcha', 'turnstile'])
+        .required('Captcha provider must be either hcaptcha or turnstile'),
   }),
   SESSIONS_TIMEBOX: number().min(0, 'Must be a positive number'),
   SESSIONS_INACTIVITY_TIMEOUT: number().min(0, 'Must be a positive number'),
@@ -74,7 +76,6 @@ function HoursOrNeverText({ value }: { value: number }) {
 const formId = 'auth-config-basic-settings'
 
 const BasicAuthSettingsForm = () => {
-  const { ui } = useStore()
   const { ref: projectRef } = useParams()
   const {
     data: authConfig,
@@ -127,16 +128,10 @@ const BasicAuthSettingsForm = () => {
       { projectRef: projectRef!, config: payload },
       {
         onError: (error) => {
-          ui.setNotification({
-            category: 'error',
-            message: `Failed to update settings:  ${error?.message}`,
-          })
+          toast.error(`Failed to update settings:  ${error?.message}`)
         },
         onSuccess: () => {
-          ui.setNotification({
-            category: 'success',
-            message: `Successfully updated settings`,
-          })
+          toast.success(`Successfully updated settings`)
           resetForm({ values: values, initialValues: values })
         },
       }

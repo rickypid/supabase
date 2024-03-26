@@ -1,33 +1,29 @@
-import * as Tooltip from '@radix-ui/react-tooltip'
+import { Keyboard } from 'lucide-react'
+import toast from 'react-hot-toast'
+
+import { RoleImpersonationPopover } from 'components/interfaces/RoleImpersonationSelector'
+import DatabaseSelector from 'components/ui/DatabaseSelector'
+import { useLocalStorageQuery, useSelectedProject } from 'hooks'
 import { IS_PLATFORM, LOCAL_STORAGE_KEYS } from 'lib/constants'
 import { detectOS } from 'lib/helpers'
+import { useSqlEditorStateSnapshot } from 'state/sql-editor'
 import {
   Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   IconAlignLeft,
   IconCheck,
   IconCommand,
   IconCornerDownLeft,
   IconLoader,
-  IconSettings,
-  Toggle_Shadcn,
   TooltipContent_Shadcn_,
   TooltipTrigger_Shadcn_,
   Tooltip_Shadcn_,
-  cn,
 } from 'ui'
-
-import { RoleImpersonationPopover } from 'components/interfaces/RoleImpersonationSelector'
-import DatabaseSelector from 'components/ui/DatabaseSelector'
-import { useLocalStorageQuery, useSelectedProject } from 'hooks'
 import FavoriteButton from './FavoriteButton'
 import SavingIndicator from './SavingIndicator'
-import toast from 'react-hot-toast'
-import { FileCog, Keyboard, SlidersHorizontal } from 'lucide-react'
 
 export type UtilityActionsProps = {
   id: string
@@ -48,14 +44,18 @@ const UtilityActions = ({
 }: UtilityActionsProps) => {
   const os = detectOS()
   const project = useSelectedProject()
+  const snap = useSqlEditorStateSnapshot()
   const showReadReplicasUI = project?.is_read_replicas_enabled
+
   const [intellisenseEnabled, setIntellisenseEnabled] = useLocalStorageQuery(
     LOCAL_STORAGE_KEYS.SQL_EDITOR_INTELLISENSE,
-    typeof window !== 'undefined' ? false : true
+    true
   )
 
   return (
     <div className="inline-flex items-center justify-end gap-x-2">
+      {IS_PLATFORM && <SavingIndicator id={id} />}
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -96,7 +96,12 @@ const UtilityActions = ({
 
       <div className="flex items-center justify-between gap-x-2 mx-2">
         <div className="flex items-center">
-          {showReadReplicasUI && <DatabaseSelector variant="connected-on-right" />}
+          {showReadReplicasUI && (
+            <DatabaseSelector
+              variant="connected-on-right"
+              onSelectId={() => snap.resetResult(id)}
+            />
+          )}
           <RoleImpersonationPopover
             serviceRoleLabel="postgres"
             variant={showReadReplicasUI ? 'connected-on-both' : 'connected-on-right'}
