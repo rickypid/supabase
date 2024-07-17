@@ -9,7 +9,7 @@ import { useParams } from 'common'
 import { useProjectContext } from 'components/layouts/ProjectLayout/ProjectContext'
 import { useDatabaseExtensionEnableMutation } from 'data/database-extensions/database-extension-enable-mutation'
 import { useDatabaseExtensionsQuery } from 'data/database-extensions/database-extensions-query'
-import { useCheckPermissions } from 'hooks'
+import { useCheckPermissions } from 'hooks/misc/useCheckPermissions'
 import { BASE_PATH } from 'lib/constants'
 import { Button, IconExternalLink } from 'ui'
 
@@ -67,7 +67,7 @@ const WrappersDisabledState = () => {
       }
     } finally {
       setIsEnabling(false)
-      if (!hasError) toast.success('Wrappers is now enabled!')
+      if (!hasError) toast.success('Wrappers are now enabled!')
     }
   }
 

@@ -1,12 +1,6 @@
 import { useEffect, useState } from 'react'
-import {
-  IconDocumentation,
-  IconMicSolid,
-  IconMusic,
-  IconProductHunt,
-  IconYoutubeSolid,
-  cn,
-} from 'ui'
+import { IconDocumentation, IconMicSolid, IconProductHunt, IconYoutubeSolid, cn } from 'ui'
+import { Music } from 'lucide-react'
 
 import Link from 'next/link'
 import { StepLink } from '../data/lw11_data'
@@ -43,7 +37,7 @@ export const DayLink = ({ type, icon, text, href = '', className }: DayLink) => 
       text: 'Watch video',
     },
     podcast: {
-      icon: IconMusic,
+      icon: Music,
       text: 'Podcast',
     },
     xSpace: {
@@ -64,10 +58,10 @@ export const DayLink = ({ type, icon, text, href = '', className }: DayLink) => 
 
   const Component = type === 'video' ? 'div' : Link
 
-  const Asd = ({ component: Comp, ...props }: any) => (
+  const Trigger = ({ component: Comp, ...props }: any) => (
     <Comp
       className={cn(
-        'py-1 flex gap-2 items-center hover:text-foreground transition-colors text-sm',
+        'py-1 flex gap-2 items-center text-foreground-lighter hover:text-foreground transition-colors text-sm',
         className
       )}
       {...props}
@@ -80,9 +74,9 @@ export const DayLink = ({ type, icon, text, href = '', className }: DayLink) => 
   )
 
   if (type === 'video')
-    return <ExpandableVideo videoId={href} trigger={<Asd component={Component} />} />
+    return <ExpandableVideo videoId={href} trigger={<Trigger component={Component} />} />
 
-  return <Asd href={href} target={isTargetBlank() ? '_blank' : '_self'} component={Component} />
+  return <Trigger href={href} target={isTargetBlank() ? '_blank' : '_self'} component={Component} />
 }
 
 export default {

@@ -17,7 +17,16 @@ export const formatUsage = (pricingMetric: PricingMetric, usage: number) => {
 export const billingMetricUnit = (pricingMetric: PricingMetric) => {
   if (pricingMetricBytes.includes(pricingMetric)) {
     return 'GB'
-  } else if (pricingMetric.startsWith('COMPUTE_HOURS')) {
+  } else if (
+    pricingMetric.startsWith('COMPUTE_HOURS') ||
+    [
+      PricingMetric.CUSTOM_DOMAIN,
+      PricingMetric.IPV4,
+      PricingMetric.PITR_7,
+      PricingMetric.PITR_14,
+      PricingMetric.PITR_28,
+    ].includes(pricingMetric)
+  ) {
     return 'Hours'
   } else {
     return null
@@ -39,7 +48,7 @@ export const generateUpgradeReasons = (originalPlan?: string, upgradedPlan?: str
   if (originalPlan === 'free' && upgradedPlan === 'pro') {
     reasons.push('Need more compute')
     reasons.push(
-      'I want access to additional features like daily backups, cost control, Custom Domain and PITR'
+      'I want access to additional features like branching, daily backups, custom domain and PITR'
     )
   } else if (upgradedPlan === 'team') {
     reasons.push('I want access to SOC2 and HIPAA compliance')
