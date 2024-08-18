@@ -7,9 +7,8 @@ import { useOrganizationRolesV2Query } from 'data/organization-members/organizat
 import { OrganizationMember } from 'data/organizations/organization-members-query'
 import { usePermissionsQuery } from 'data/permissions/permissions-query'
 import { useProjectsQuery } from 'data/projects/projects-query'
-import { useOrgSubscriptionQuery } from 'data/subscriptions/org-subscription-query'
+import { useHasAccessToProjectLevelPermissions } from 'data/subscriptions/org-subscription-query'
 import { useSelectedOrganization } from 'hooks/misc/useSelectedOrganization'
-import { useFlag } from 'hooks/ui/useFlag'
 import {
   AlertDescription_Shadcn_,
   AlertTitle_Shadcn_,
@@ -39,9 +38,9 @@ import {
   TooltipContent_Shadcn_,
   TooltipTrigger_Shadcn_,
   Tooltip_Shadcn_,
+  WarningIcon,
   cn,
 } from 'ui'
-import { WarningIcon } from 'ui-patterns/Icons/StatusIcons'
 import { useGetRolesManagementPermissions } from '../TeamSettings.utils'
 import { UpdateRolesConfirmationModal } from './UpdateRolesConfirmationModal'
 import {
@@ -58,20 +57,18 @@ interface UpdateRolesPanelProps {
 export const UpdateRolesPanel = ({ visible, member, onClose }: UpdateRolesPanelProps) => {
   const { slug } = useParams()
   const organization = useSelectedOrganization()
-  const projectLevelPermissionsEnabled = useFlag('projectLevelPermissions')
+  const isOptedIntoProjectLevelPermissions = useHasAccessToProjectLevelPermissions(slug as string)
 
   const { data: projects } = useProjectsQuery()
   const { data: permissions } = usePermissionsQuery()
   const { data: allRoles, isSuccess: isSuccessRoles } = useOrganizationRolesV2Query({ slug })
-  const { data: subscription } = useOrgSubscriptionQuery({ orgSlug: slug })
 
   // [Joshen] We use the org scoped roles as the source for available roles
   const orgScopedRoles = allRoles?.org_scoped_roles ?? []
   const projectScopedRoles = allRoles?.project_scoped_roles ?? []
-  const isEnterprise = subscription?.plan.id === 'enterprise'
 
   const { rolesAddable, rolesRemovable } = useGetRolesManagementPermissions(
-    organization?.id,
+    organization?.slug,
     orgScopedRoles.concat(projectScopedRoles),
     permissions ?? []
   )
@@ -185,7 +182,7 @@ export const UpdateRolesPanel = ({ visible, member, onClose }: UpdateRolesPanelP
             </SheetHeader>
 
             <SheetSection className="h-full overflow-auto flex flex-col gap-y-4">
-              {projectLevelPermissionsEnabled && isEnterprise && (
+              {isOptedIntoProjectLevelPermissions && (
                 <div className="flex items-center gap-x-4">
                   <Switch
                     disabled={cannotAddAnyRoles}
@@ -278,22 +275,20 @@ export const UpdateRolesPanel = ({ visible, member, onClose }: UpdateRolesPanelP
                               </SelectTrigger_Shadcn_>
                               <SelectContent_Shadcn_>
                                 <SelectGroup_Shadcn_>
-                                  {(orgScopedRoles ?? [])
-                                    .sort((a, b) => sortByObject[a.name] - sortByObject[b.name])
-                                    .map((role) => {
-                                      const canAssignRole = rolesAddable.includes(role.id)
+                                  {(orgScopedRoles ?? []).map((role) => {
+                                    const canAssignRole = rolesAddable.includes(role.id)
 
-                                      return (
-                                        <SelectItem_Shadcn_
-                                          key={role.id}
-                                          value={role.id.toString()}
-                                          className="text-sm"
-                                          disabled={!canAssignRole}
-                                        >
-                                          {role.name}
-                                        </SelectItem_Shadcn_>
-                                      )
-                                    })}
+                                    return (
+                                      <SelectItem_Shadcn_
+                                        key={role.id}
+                                        value={role.id.toString()}
+                                        className="text-sm"
+                                        disabled={!canAssignRole}
+                                      >
+                                        {role.name}
+                                      </SelectItem_Shadcn_>
+                                    )
+                                  })}
                                 </SelectGroup_Shadcn_>
                               </SelectContent_Shadcn_>
                             </Select_Shadcn_>
@@ -331,7 +326,7 @@ export const UpdateRolesPanel = ({ visible, member, onClose }: UpdateRolesPanelP
                 >
                   <PopoverTrigger_Shadcn_ asChild>
                     <Button type="default" className="w-min">
-                      Assign role to project
+                      Add project
                     </Button>
                   </PopoverTrigger_Shadcn_>
                   <PopoverContent_Shadcn_ className="p-0" side="bottom" align="start">
