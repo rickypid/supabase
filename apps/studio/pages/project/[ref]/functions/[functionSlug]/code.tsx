@@ -1,7 +1,6 @@
 import { common, dirname, relative } from '@std/path/posix'
 import { PermissionAction } from '@supabase/shared-types/out/constants'
 import { AlertCircle, CornerDownLeft, Loader2 } from 'lucide-react'
-import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -15,24 +14,24 @@ import { useEdgeFunctionBodyQuery } from 'data/edge-functions/edge-function-body
 import { useEdgeFunctionQuery } from 'data/edge-functions/edge-function-query'
 import { useEdgeFunctionDeployMutation } from 'data/edge-functions/edge-functions-deploy-mutation'
 import { useSendEventMutation } from 'data/telemetry/send-event-mutation'
-import { useCheckPermissions } from 'hooks/misc/useCheckPermissions'
-import { useOrgOptedIntoAi } from 'hooks/misc/useOrgOptedIntoAi'
-import { useSelectedOrganization } from 'hooks/misc/useSelectedOrganization'
-import { useSelectedProject } from 'hooks/misc/useSelectedProject'
-import { BASE_PATH, IS_PLATFORM } from 'lib/constants'
+import { useAsyncCheckProjectPermissions } from 'hooks/misc/useCheckPermissions'
+import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
+import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
+import { BASE_PATH } from 'lib/constants'
 import { LogoLoader } from 'ui'
 
 const CodePage = () => {
-  const router = useRouter()
   const { ref, functionSlug } = useParams()
-  const project = useSelectedProject()
-  const isOptedInToAI = useOrgOptedIntoAi()
-  const includeSchemaMetadata = isOptedInToAI || !IS_PLATFORM
+  const { data: project } = useSelectedProjectQuery()
+  const { data: org } = useSelectedOrganizationQuery()
+
   const { mutate: sendEvent } = useSendEventMutation()
-  const org = useSelectedOrganization()
   const [showDeployWarning, setShowDeployWarning] = useState(false)
 
-  const canDeployFunction = useCheckPermissions(PermissionAction.FUNCTIONS_WRITE, '*')
+  const { can: canDeployFunction } = useAsyncCheckProjectPermissions(
+    PermissionAction.FUNCTIONS_WRITE,
+    '*'
+  )
 
   const { data: selectedFunction } = useEdgeFunctionQuery({ projectRef: ref, slug: functionSlug })
   const {
@@ -47,9 +46,16 @@ const CodePage = () => {
       slug: functionSlug,
     },
     {
+      // [Alaister]: These parameters prevent the function files
+      // from being refetched when the user is editing the code
       retry: false,
-      refetchOnWindowFocus: false,
       retryOnMount: false,
+      refetchOnWindowFocus: false,
+      staleTime: Infinity,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      refetchInterval: false,
+      refetchIntervalInBackground: false,
     }
   )
   const [files, setFiles] = useState<
@@ -214,11 +220,11 @@ const CodePage = () => {
           <FileExplorerAndEditor
             files={files}
             onFilesChange={setFiles}
-            aiEndpoint={`${BASE_PATH}/api/ai/edge-function/complete`}
+            aiEndpoint={`${BASE_PATH}/api/ai/code/complete`}
             aiMetadata={{
               projectRef: project?.ref,
               connectionString: project?.connectionString,
-              includeSchemaMetadata,
+              orgSlug: org?.slug,
             }}
           />
           <div className="flex items-center bg-background-muted justify-end p-4 border-t bg-surface-100 shrink-0">
@@ -255,6 +261,7 @@ const CodePage = () => {
         visible={showDeployWarning}
         onCancel={() => setShowDeployWarning(false)}
         onConfirm={handleDeployConfirm}
+        isDeploying={isDeploying}
       />
     </div>
   )

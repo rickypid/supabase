@@ -7,12 +7,12 @@ import { LOCAL_STORAGE_KEYS } from 'common'
 import { useOrganizationDeleteMutation } from 'data/organizations/organization-delete-mutation'
 import { useCheckPermissions } from 'hooks/misc/useCheckPermissions'
 import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
-import { useSelectedOrganization } from 'hooks/misc/useSelectedOrganization'
+import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { Button, Form, Input, Modal } from 'ui'
 
 export const DeleteOrganizationButton = () => {
   const router = useRouter()
-  const selectedOrganization = useSelectedOrganization()
+  const { data: selectedOrganization } = useSelectedOrganizationQuery()
   const { slug: orgSlug, name: orgName } = selectedOrganization ?? {}
 
   const [isOpen, setIsOpen] = useState(false)
@@ -37,7 +37,7 @@ export const DeleteOrganizationButton = () => {
     if (!values.orgName) {
       errors.orgName = 'Enter the name of the organization.'
     }
-    if (values.orgName !== orgSlug) {
+    if (values.orgName.trim() !== orgSlug?.trim()) {
       errors.orgName = 'Value entered does not match the value above.'
     }
     return errors
