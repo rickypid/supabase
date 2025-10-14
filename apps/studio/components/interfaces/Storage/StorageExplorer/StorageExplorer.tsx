@@ -8,18 +8,18 @@ import { IS_PLATFORM } from 'lib/constants'
 import { useStorageExplorerStateSnapshot } from 'state/storage-explorer'
 import { STORAGE_ROW_TYPES, STORAGE_VIEWS } from '../Storage.constants'
 import { ConfirmDeleteModal } from './ConfirmDeleteModal'
-import CustomExpiryModal from './CustomExpiryModal'
-import FileExplorer from './FileExplorer'
-import FileExplorerHeader from './FileExplorerHeader'
-import FileExplorerHeaderSelection from './FileExplorerHeaderSelection'
-import MoveItemsModal from './MoveItemsModal'
-import PreviewPane from './PreviewPane'
+import { CustomExpiryModal } from './CustomExpiryModal'
+import { FileExplorer } from './FileExplorer'
+import { FileExplorerHeader } from './FileExplorerHeader'
+import { FileExplorerHeaderSelection } from './FileExplorerHeaderSelection'
+import { MoveItemsModal } from './MoveItemsModal'
+import { PreviewPane } from './PreviewPane'
 
 interface StorageExplorerProps {
   bucket: Bucket
 }
 
-const StorageExplorer = ({ bucket }: StorageExplorerProps) => {
+export const StorageExplorer = ({ bucket }: StorageExplorerProps) => {
   const { ref } = useParams()
   const storageExplorerRef = useRef(null)
   const {
@@ -52,9 +52,6 @@ const StorageExplorer = ({ bucket }: StorageExplorerProps) => {
   // This state exists outside of the header because FileExplorerColumn needs to listen to these as well
   // Things like showing results from a search filter is "temporary", hence we use react state to manage
   const [itemSearchString, setItemSearchString] = useState('')
-
-  // Requires a fixed height to ensure that explorer is constrained to the viewport
-  const fileExplorerHeight = window.innerHeight - 122
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -126,7 +123,7 @@ const StorageExplorer = ({ bucket }: StorageExplorerProps) => {
 
   /** File manipulation methods */
 
-  const onFilesUpload = async (event: any, columnIndex = -1) => {
+  const onFilesUpload = async (event: any, columnIndex: number = -1) => {
     event.persist()
     const items = event.target.files || event.dataTransfer.items
     const isDrop = !isEmpty(get(event, ['dataTransfer', 'items'], []))
@@ -178,7 +175,7 @@ const StorageExplorer = ({ bucket }: StorageExplorerProps) => {
       ) : (
         <FileExplorerHeaderSelection />
       )}
-      <div className="flex h-full" style={{ height: fileExplorerHeight }}>
+      <div className="flex flex-1 min-h-0">
         <FileExplorer
           columns={columns}
           selectedItems={selectedItems}
@@ -211,4 +208,3 @@ const StorageExplorer = ({ bucket }: StorageExplorerProps) => {
 }
 
 StorageExplorer.displayName = 'StorageExplorer'
-export default StorageExplorer
